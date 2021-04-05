@@ -243,7 +243,8 @@ int isAsciiDigit(int x) {
 /**
  * x == 0 返回 z
  * x != 0 返回 y
- * 通过~0是否溢出来决定是否要加上y/z
+ * !x只有 0/1 两个取值 所以直接用0xffffffff来加上!x来实现加y/z
+ * 通过~0+!x是否会溢出来控制是否真的会加上y/z
  **/
 int conditional(int x, int y, int z) {
   int ans = ((!x + (~0)) & y); 
@@ -258,7 +259,17 @@ int conditional(int x, int y, int z) {
  *   Rating: 3
  */
 int isLessOrEqual(int x, int y) {
-  return 2;
+  // 判断x与y符号是否相同
+  int signX = (x >> 31) & 0x1;
+  int signY = (y >> 31) & 0x1;
+  int isSame = !(signX ^ signY);
+
+  // 计算y-x的符号
+  int p = !((~x+1+y) >> 31);
+
+  // 如果x与y符号相同 那么结果就是p
+  // 如果符号不同 那么只与x是否为负数有关
+  return (isSame & p) | ((!isSame) & signX);
 }
 //4
 /* 
@@ -269,8 +280,16 @@ int isLessOrEqual(int x, int y) {
  *   Max ops: 12
  *   Rating: 4 
  */
+
+/**
+ * 使y=~x+1 
+ * 1. x为0时 x与y的符号都为0
+ * 2. x为0x8000时，x与y的符号都为1
+ * 3. 否则 两者符号为01或10
+ */
 int logicalNeg(int x) {
-  return 2;
+  return (((~x+1) | x) >> 31) + 1;
+
 }
 /* howManyBits - return the minimum number of bits required to represent x in
  *             two's complement
